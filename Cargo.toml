@@ -1,0 +1,8 @@
+[package]
+name = "llmchat"
+version = "0.1.0"
+edition = "2024"
+
+[dependencies]
+burn={version = "0.17", features = ["rocm", "vulkan", "dataset", "network", "train", "vision"]}
+tokio = {version="1", features = ["full"]}
