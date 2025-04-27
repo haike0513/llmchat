@@ -17,7 +17,7 @@ pub  fn main() {
     type MyAutodiffBackend = Autodiff<MyBackend>;
 
     // All the training artifacts will be saved in this directory
-    let artifact_dir = "/tmp/guide";
+    let artifact_dir = "./guide";
 
     // Train the model
     training::train::<MyAutodiffBackend>(
