@@ -25,6 +25,6 @@ fn main() {
         DbPediaDataset::train(),
         DbPediaDataset::test(),
         config,
-        "/tmp/text-generation",
+        "guide/text-generation",
     );
 }
