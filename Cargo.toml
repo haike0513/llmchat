@@ -3,6 +3,22 @@ name = "llmchat"
 version = "0.1.0"
 edition = "2024"
 
+
+[features]
+default = ["burn/dataset", "burn/sqlite-bundled"]
+f16 = []
+
 [dependencies]
 burn={version = "0.17", features = ["rocm", "vulkan", "dataset", "network", "train", "vision"]}
 tokio = {version="1", features = ["full"]}
+
+# Tokenizer
+tokenizers = {version = "0.21.1", default-features = false, features = [
+  "onig",
+  "http",
+]}
+
+# Utils
+derive-new = {version="0.7.0"}
+log = {version="0.4.27"}
+serde = {version="1.0.219", features = ["std", "derive"]}

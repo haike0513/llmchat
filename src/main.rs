@@ -1,39 +1,30 @@
-use  burn::backend::{self, rocm, Autodiff};
+use burn::{backend::{self, rocm, Autodiff}, optim::decay::WeightDecayConfig};
+use llmchat::{DbPediaDataset, training::ExperimentConfig};
 
-use burn::data::dataset::Dataset;
-use burn::optim::AdamConfig;
-use model::ModelConfig;
-use training::TrainingConfig;
-pub mod model;
-pub mod inference;
-pub mod data;
-pub mod training;
-// #[tokio::main]
-pub  fn main() {
-    type MyBackend = backend::Rocm<f32, i32>;
+#[cfg(feature = "f16")]
+type Elem = burn::tensor::f16;
+#[cfg(not(feature = "f16"))]
+type Elem = f32;
+
+type MyBackend = backend::Rocm<f32, i32>;
+type MyAutodiffBackend = Autodiff<MyBackend>;
+
+// type Backend = burn::backend::Autodiff<burn::backend::LibTorch<Elem>>;
+
+fn main() {
+
     let device = rocm::HipDevice::new(0);
-    println!("Hello, world! {:#?}", device);
-
-    type MyAutodiffBackend = Autodiff<MyBackend>;
-
-    // All the training artifacts will be saved in this directory
-    let artifact_dir = "./guide";
-
-    // Train the model
-    training::train::<MyAutodiffBackend>(
-        artifact_dir,
-        TrainingConfig::new(ModelConfig::new(10, 512), AdamConfig::new()),
-        device.clone(),
+    let config = ExperimentConfig::new(
+        burn::nn::transformer::TransformerEncoderConfig::new(384, 1536, 12, 6)
+            .with_norm_first(true),
+        burn::optim::AdamConfig::new().with_weight_decay(Some(WeightDecayConfig::new(1.0e-6))),
     );
 
-        // Infer the model
-        inference::infer::<MyBackend>(
-            artifact_dir,
-            device,
-            burn::data::dataset::vision::MnistDataset::test()
-                .get(42)
-                .unwrap(),
-        );
-
-
+    llmchat::training::train::<MyAutodiffBackend, DbPediaDataset>(
+        device,
+        DbPediaDataset::train(),
+        DbPediaDataset::test(),
+        config,
+        "/tmp/text-generation",
+    );
 }
