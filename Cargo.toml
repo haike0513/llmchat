@@ -9,7 +9,7 @@ default = ["burn/dataset", "burn/sqlite-bundled"]
 f16 = []
 
 [dependencies]
-burn={version = "0.17", features = ["rocm", "vulkan", "dataset", "network", "train", "vision", "tch"]}
+burn={version = "0.17", features = ["rocm", "vulkan", "dataset", "network", "train", "vision", "tch", "fusion", "wgpu", "experimental-named-tensor"]}
 tokio = {version="1", features = ["full"]}
 
 # Tokenizer
