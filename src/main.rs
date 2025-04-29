@@ -1,5 +1,14 @@
 use burn::{backend::{self, rocm, wgpu::WgpuRuntime, Autodiff}, optim::decay::WeightDecayConfig};
+use clap::Parser;
 use llmchat::{DbPediaDataset, training::ExperimentConfig};
+
+pub(crate) mod cache;
+pub mod llama;
+pub mod pretrained;
+pub mod sampling;
+pub mod tokenizer;
+pub mod transformer;
+pub mod chat;
 
 #[cfg(feature = "f16")]
 type Elem = burn::tensor::f16;
@@ -13,13 +22,7 @@ type TorchBackend = burn::backend::Autodiff<burn::backend::LibTorch<Elem>>;
 type Backend = MyAutodiffBackend;
 type WGPUBackend = MyAutodiffBackend;
 type ROCMBackend = Autodiff<backend::Rocm<f32, i32, u32>>;
-
-
-
-
-
-fn main() {
-
+fn train_llm_model() {
     let device = rocm::HipDevice::new(0);
     let device = burn::tensor::Device::<TorchBackend>::Cpu;
     let device = burn::tensor::Device::<TorchBackend>::Cpu;
@@ -40,4 +43,23 @@ fn main() {
         config,
         "guide/text-generation",
     );
+}
+
+mod wgpu {
+    use super::*;
+    use burn::backend::wgpu::{Wgpu, WgpuDevice};
+
+    pub fn run(args: chat::Config) {
+        let device = WgpuDevice::default();
+
+        chat::chat::<Wgpu>(args, device);
+    }
+}
+
+
+
+fn main() {
+    let args = chat::Config::parse();
+    wgpu::run(args);
+
 }
