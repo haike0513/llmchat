@@ -10,22 +10,37 @@ f16 = []
 dirs = ["dep:dirs"]
 
 [dependencies]
-burn={version = "0.17", features = ["rocm", "vulkan", "dataset", "network", "train", "vision", "tch", "fusion", "wgpu", "experimental-named-tensor"]}
-tokio = {version="1", features = ["full"]}
+burn = { version = "0.17", features = [
+  "rocm",
+  "vulkan",
+  "dataset",
+  "network",
+  "train",
+  "vision",
+  "tch",
+  "fusion",
+  "wgpu",
+  "experimental-named-tensor",
+] }
+tokio = { version = "1", features = ["full"] }
 
 # Tokenizer
-tokenizers = {version = "0.21.1", default-features = false, features = [
+tokenizers = { version = "0.21.1", default-features = false, features = [
   "onig",
   "http",
-]}
+] }
 
 # Utils
-derive-new = {version="0.7.0"}
-log = {version="0.4.27"}
-serde = {version="1.0.219", features = ["std", "derive"]}
+derive-new = { version = "0.7.0" }
+log = { version = "0.4.27" }
+serde = { version = "1.0.219", features = ["std", "derive"] }
 clap = { version = "4.5.37", features = ["derive"] }
 rand = { version = "0.8.5", default-features = false, features = [
-    "std_rng",
+  "std_rng",
 ] } # std_rng is for no_std
 
 dirs = { version = "5.0.1", optional = true }
+axum = { version = "0.8.3", features = [
+  "http2",
+  "macros",
+] }

@@ -9,6 +9,8 @@ pub mod sampling;
 pub mod tokenizer;
 pub mod transformer;
 pub mod chat;
+pub mod router;
+pub mod server;
 
 #[cfg(feature = "f16")]
 type Elem = burn::tensor::f16;
@@ -46,7 +48,7 @@ fn train_llm_model() {
 }
 // use chat::chat;
 
-mod wgpu {
+pub mod wgpu {
     use super::*;
     use burn::backend::wgpu::{Wgpu, WgpuDevice};
 
@@ -59,23 +61,40 @@ mod wgpu {
 
 // #[cfg(feature = "tch-cpu")]
 use chat::Config;
-mod tch_cpu {
+pub mod tch_cpu {
+    use crate::llama::GenerationOutput;
+
     use super::*;
     use burn::backend::{libtorch::LibTorchDevice, LibTorch};
 
-    pub fn run(args: Config) {
+    pub fn run(args: Config) -> GenerationOutput {
         let device = LibTorchDevice::Cpu;
 
-        chat::chat::<LibTorch>(args, device);
+        chat::chat::<LibTorch>(args, device)
     }
 }
 
+use axum::{
+    routing::{get, post},
+    Router,
+};
 
-
-fn main() {
-    let args = chat::Config::parse();
+use std::default::Default;
+#[tokio::main]
+pub async fn main() {
+    use crate::server::state;
+    // let args = chat::Config::parse();
     // wgpu::run(args);
-    tch_cpu::run(args);
+    let app_state = state::AppState{
+        ..Default::default()
+    };
+    // tch_cpu::run(args);
+        // build our application with a single route
+        let app = Router::new().route("/", get(|| async { "Hello, World!" }))
+        .route("/api/v1/chat", post(router::hello_world))
+        .with_state(app_state)
+        ;
 
-
+        let listener = tokio::net::TcpListener::bind("0.0.0.0:9320").await.unwrap();
+        axum::serve(listener, app).await.unwrap();
 }

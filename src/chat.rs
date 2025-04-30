@@ -3,7 +3,7 @@ use std::time::Instant;
 use burn::tensor::{backend::Backend, Device};
 use clap::Parser;
 use crate::{
-    llama::{Llama, LlamaConfig},
+    llama::{GenerationOutput, Llama, LlamaConfig},
     sampling::{Sampler, TopP},
     tokenizer::Tokenizer,
 };
@@ -70,7 +70,7 @@ pub fn generate<B: Backend, T: Tokenizer>(
     sample_len: usize,
     temperature: f64,
     sampler: &mut Sampler,
-) {
+) -> GenerationOutput {
     let now = Instant::now();
     let generated = llama.generate(prompt, sample_len, temperature, sampler);
     let elapsed = now.elapsed().as_secs();
@@ -87,9 +87,10 @@ pub fn generate<B: Backend, T: Tokenizer>(
         (elapsed / 60),
         elapsed % 60
     );
+    generated
 }
 
-pub fn chat<B: Backend>(args: Config, device: Device<B>) {
+pub fn chat<B: Backend>(args: Config, device: Device<B>) -> GenerationOutput {
     let mut prompt = args.prompt;
 
     // Sampling strategy
@@ -116,7 +117,7 @@ pub fn chat<B: Backend>(args: Config, device: Device<B>) {
             args.sample_len,
             args.temperature,
             &mut sampler,
-        );
+        )
     }
 
     #[cfg(feature = "llama3")]
