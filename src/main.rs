@@ -44,6 +44,7 @@ fn train_llm_model() {
         "guide/text-generation",
     );
 }
+// use chat::chat;
 
 mod wgpu {
     use super::*;
@@ -56,10 +57,25 @@ mod wgpu {
     }
 }
 
+// #[cfg(feature = "tch-cpu")]
+use chat::Config;
+mod tch_cpu {
+    use super::*;
+    use burn::backend::{libtorch::LibTorchDevice, LibTorch};
+
+    pub fn run(args: Config) {
+        let device = LibTorchDevice::Cpu;
+
+        chat::chat::<LibTorch>(args, device);
+    }
+}
+
 
 
 fn main() {
     let args = chat::Config::parse();
-    wgpu::run(args);
+    // wgpu::run(args);
+    tch_cpu::run(args);
+
 
 }
