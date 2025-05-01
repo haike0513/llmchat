@@ -1,7 +1,9 @@
-use std::time::Instant;
+use std::{convert::Infallible, time::Instant};
 
+use axum::response::sse::Event;
 use burn::tensor::{backend::Backend, Device};
 use clap::Parser;
+use tokio::sync::mpsc;
 use crate::{
     llama::{GenerationOutput, Llama, LlamaConfig},
     sampling::{Sampler, TopP},
@@ -70,9 +72,10 @@ pub fn generate<B: Backend, T: Tokenizer>(
     sample_len: usize,
     temperature: f64,
     sampler: &mut Sampler,
+    sender: mpsc::Sender<Result<Event, Infallible>>
 ) -> GenerationOutput {
     let now = Instant::now();
-    let generated = llama.generate(prompt, sample_len, temperature, sampler);
+    let generated = llama.generate(prompt, sample_len, temperature, sampler, sender);
     let elapsed = now.elapsed().as_secs();
 
     println!("> {}\n", generated.text);
@@ -90,7 +93,9 @@ pub fn generate<B: Backend, T: Tokenizer>(
     generated
 }
 
-pub fn chat<B: Backend>(args: Config, device: Device<B>) -> GenerationOutput {
+pub fn chat<B: Backend>(args: Config, device: Device<B>,
+    sender: mpsc::Sender<Result<Event, Infallible>>,
+) -> GenerationOutput {
     let mut prompt = args.prompt;
 
     // Sampling strategy
@@ -117,6 +122,7 @@ pub fn chat<B: Backend>(args: Config, device: Device<B>) -> GenerationOutput {
             args.sample_len,
             args.temperature,
             &mut sampler,
+            sender,
         )
     }
 

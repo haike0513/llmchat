@@ -15,8 +15,9 @@ use tokio_stream::StreamExt as _;
 use tower_http::{services::ServeDir, trace::TraceLayer};
 // use tracing_subscriber::{layer::SubscriberExt, util::SubscriberInitExt};
 pub async fn hello_world() -> String {
+    let (tx, rx) = tokio::sync::mpsc::channel(32);
     let args = chat::Config::parse();
-    let g = tch_cpu::run(args);
+    let g = tch_cpu::run(args, tx);
     g.text
 }
 
@@ -29,17 +30,17 @@ pub async fn sse_handler(
 
     tokio::spawn(async move {
         let args = chat::Config::parse();
-        let g = tch_cpu::run(args);
-        for chunk in g.text.split(" ").into_iter() {
-            tx.send(Ok(Event::default().data(chunk))).await.unwrap();
-        }
+        let g = tch_cpu::run(args, tx);
+        // for chunk in g.text.split(" ").into_iter() {
+        //     tx.send(Ok(Event::default().data(chunk))).await.unwrap();
+        // }
     });
 
     let stream = tokio_stream::wrappers::ReceiverStream::new(rx);
 
     Sse::new(stream).keep_alive(
         axum::response::sse::KeepAlive::new()
-            .interval(Duration::from_secs(1))
-            .text("keep-alive-text"),
+            .interval(Duration::from_secs(10))
+            .text("keep-alive"),
     )
 }

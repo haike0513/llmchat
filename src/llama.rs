@@ -1,5 +1,6 @@
-use std::time::Instant;
+use std::{convert::Infallible, time::Instant};
 
+use axum::response::sse::Event;
 use burn::{
     config::Config,
     module::Module,
@@ -9,6 +10,7 @@ use burn::{
         activation::softmax, backend::Backend, cast::ToElement, Device, ElementConversion, Int, Shape, Tensor, TensorData
     },
 };
+use tokio::sync::mpsc;
 
 #[cfg(feature = "import")]
 use {
@@ -625,6 +627,7 @@ impl<B: Backend, T: Tokenizer> Llama<B, T> {
         sample_len: usize,
         temperature: f64,
         sampler: &mut Sampler,
+        sender: mpsc::Sender<Result<Event, Infallible>>,
     ) -> GenerationOutput {
         let input_tokens = self.tokenize(prompt);
         let prompt_len = input_tokens.dims()[0];
@@ -657,6 +660,12 @@ impl<B: Backend, T: Tokenizer> Llama<B, T> {
             let generated_token = self.tokenizer.decode(single_token);
             tracing::debug!("next_token {}", generated_token);
 
+            let tx = sender.clone();
+
+            tokio::spawn(async move {
+                tx.send(Ok(Event::default().data(generated_token))).await;
+            });
+            
 
             // Stop when any of the valid stop tokens is encountered
             if stop_tokens
