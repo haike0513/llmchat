@@ -1,11 +1,11 @@
-use axum::{
-    response::sse::{Event, Sse},
-    routing::{get, post},
-    Router,
-};
-use clap::Parser;
 use crate::chat;
 use crate::tch_cpu;
+use axum::{
+    Router,
+    response::sse::{Event, Sse},
+    routing::{get, post},
+};
+use clap::Parser;
 use std::{convert::Infallible, path::PathBuf, time::Duration};
 
 use axum_extra::TypedHeader;
@@ -25,13 +25,17 @@ pub async fn sse_handler(
 ) -> Sse<impl Stream<Item = Result<Event, Infallible>>> {
     println!("`{}` connected", user_agent.as_str());
 
-    // A `Stream` that repeats an event every second
-    //
-    // You can also create streams from tokio channels using the wrappers in
-    // https://docs.rs/tokio-stream
-    let stream = stream::repeat_with(|| Event::default().data("hi!"))
-        .map(Ok)
-        .throttle(Duration::from_secs(1));
+    let (tx, rx) = tokio::sync::mpsc::channel(32);
+
+    tokio::spawn(async move {
+        let args = chat::Config::parse();
+        let g = tch_cpu::run(args);
+        for chunk in g.text.split(" ").into_iter() {
+            tx.send(Ok(Event::default().data(chunk))).await.unwrap();
+        }
+    });
+
+    let stream = tokio_stream::wrappers::ReceiverStream::new(rx);
 
     Sse::new(stream).keep_alive(
         axum::response::sse::KeepAlive::new()
