@@ -11,6 +11,7 @@ pub mod transformer;
 pub mod chat;
 pub mod router;
 pub mod server;
+pub mod ext;
 
 #[cfg(feature = "f16")]
 type Elem = burn::tensor::f16;
@@ -83,7 +84,7 @@ use axum::{
     Router,
 };
 
-use std::default::Default;
+use std::{collections::BTreeMap, default::Default};
 #[tokio::main]
 pub async fn main() {
     tracing_subscriber::fmt::init();

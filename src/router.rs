@@ -1,9 +1,8 @@
-use crate::chat;
+use crate::{chat, server::state::AppState};
+use crate::ext::LlamaExtension;
 use crate::tch_cpu;
 use axum::{
-    Router,
-    response::sse::{Event, Sse},
-    routing::{get, post},
+    extract::State, response::sse::{Event, Sse}, routing::{get, post}, Router
 };
 use clap::Parser;
 use std::{convert::Infallible, path::PathBuf, time::Duration};
@@ -22,9 +21,19 @@ pub async fn hello_world() -> String {
 }
 
 pub async fn sse_handler(
+    State(s) : State<AppState>,
     TypedHeader(user_agent): TypedHeader<headers::UserAgent>,
 ) -> Sse<impl Stream<Item = Result<Event, Infallible>>> {
     println!("`{}` connected", user_agent.as_str());
+
+    let models = s.models.lock();
+    
+    if let Ok(models) = models {
+        let model = models.get("llm");
+        if let Some(llm) = model {
+            let result = llm.generate();
+        }
+    }
 
     let (tx, rx) = tokio::sync::mpsc::channel(32);
 
