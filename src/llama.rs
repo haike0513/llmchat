@@ -650,6 +650,13 @@ impl<B: Backend, T: Tokenizer> Llama<B, T> {
             };
 
             let next_token = sampler.sample(next_token_logits).squeeze(0);
+            let single_token = next_token.clone().into_data().as_slice::<B::IntElem>().unwrap()
+            .iter()
+            .map(|t| t.elem::<u32>())
+            .collect::<Vec<_>>();
+            let generated_token = self.tokenizer.decode(single_token);
+            tracing::debug!("next_token {}", generated_token);
+
 
             // Stop when any of the valid stop tokens is encountered
             if stop_tokens

@@ -82,6 +82,7 @@ use axum::{
 use std::default::Default;
 #[tokio::main]
 pub async fn main() {
+    tracing_subscriber::fmt::init();
     use crate::server::state;
     // let args = chat::Config::parse();
     // wgpu::run(args);
