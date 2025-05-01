@@ -92,6 +92,7 @@ pub async fn main() {
         // build our application with a single route
         let app = Router::new().route("/", get(|| async { "Hello, World!" }))
         .route("/api/v1/chat", post(router::hello_world))
+        .route("/sse", get(router::sse_handler))
         .with_state(app_state)
         ;
 
