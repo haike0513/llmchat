@@ -98,7 +98,7 @@ pub async fn chat<B: Backend>(prompt: String, device: Device<B>,
 ) -> GenerationOutput {
 
     // Sampling strategy
-    let mut sampler = Sampler::Argmax;
+    let mut sampler = Sampler::TopP(TopP::new(0.9, 42));
 
 
     // #[cfg(feature = "tiny")]

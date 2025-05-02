@@ -658,7 +658,7 @@ impl<B: Backend, T: Tokenizer> Llama<B, T> {
             .map(|t| t.elem::<u32>())
             .collect::<Vec<_>>();
             let generated_token = self.tokenizer.decode(single_token);
-            tracing::debug!("next_token {}", generated_token);
+            tracing::debug!("next_token with generate token {}", generated_token);
             sender.send(generated_token.clone()).await.unwrap();
 
             // let tx = sender.clone();

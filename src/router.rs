@@ -42,6 +42,7 @@ pub async fn sse_handler(
             tracing::debug!("llm: {:?}", llm.name());
             let result = llm.generate(sse_param.prompt.clone());
             let final_r = result.map(|s|  {
+                tracing::debug!("llm: {:?}", s);
                 let ev = Event::default().data(s);
                 Ok(ev)
             });
