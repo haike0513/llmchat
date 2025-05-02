@@ -1,6 +1,6 @@
 use crate::tch_cpu;
 use clap::Parser;
-use llmchat::extensions::llm::LLMGenerate;
+use crate::extensions::llm::LLMGenerate;
 
 use futures::{stream::{BoxStream, Stream}, StreamExt};
 use tokio_stream::wrappers::ReceiverStream;
@@ -15,16 +15,21 @@ impl LlamaExtension {
     pub fn new() -> Self {
         Self {}
     }
-    pub fn generate_llm(&self) -> impl Stream<Item = String> + 'static {
+    pub fn generate_llm(&self) -> impl Stream<Item = String> + Send + 'static {
         let (tx, mut rx) = tokio::sync::mpsc::channel::<String>(100);
 
+        let instance = self.clone();
+
         tokio::spawn(async move {
-            tx.send("Stream".to_string()).await.unwrap();
-            tx.closed();
+            instance.generate_with_prompt("hello".to_string(), tx).await;
         });
 
         let rs = ReceiverStream::new(rx);
         rs
+    }
+    pub async fn generate_with_prompt(&self, prompt: String, tx: tokio::sync::mpsc::Sender<String>) {
+        tx.send("value".to_string()).await.unwrap();
+
     }
 }
 

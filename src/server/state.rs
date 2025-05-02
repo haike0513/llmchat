@@ -1,6 +1,6 @@
 use std::{collections::BTreeMap, sync::{Arc, Mutex}};
 
-use llmchat::extensions::llm::LLMGenerate;
+use crate::extensions::llm::LLMGenerate;
 use crate::ext::LlamaExtension;
 
 #[derive(Clone)]

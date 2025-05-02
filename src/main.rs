@@ -3,15 +3,15 @@ use clap::Parser;
 use llmchat::{DbPediaDataset, training::ExperimentConfig};
 
 pub(crate) mod cache;
-pub mod llama;
-pub mod pretrained;
-pub mod sampling;
-pub mod tokenizer;
-pub mod transformer;
-pub mod chat;
-pub mod router;
-pub mod server;
-pub mod ext;
+pub use llmchat::llama;
+pub use llmchat::pretrained;
+pub use llmchat::sampling;
+pub use llmchat::tokenizer;
+pub use llmchat::transformer;
+pub use llmchat::chat;
+pub use llmchat::router;
+pub use llmchat::server;
+pub use llmchat::ext;
 
 #[cfg(feature = "f16")]
 type Elem = burn::tensor::f16;
