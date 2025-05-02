@@ -31,6 +31,7 @@ pub async fn sse_handler(
     let result_stream = if let Ok(models) = models {
         let model = models.get("llm");
         let s = if let Some(llm) = model {
+            tracing::debug!("llm: {:?}", llm.name());
             let result = llm.generate();
             let final_r = result.map(|s|  {
                 let ev = Event::default().data(s);

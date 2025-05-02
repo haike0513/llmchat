@@ -55,7 +55,7 @@ impl LlamaExtension {
         prompt: String,
         tx: tokio::sync::mpsc::Sender<String>,
     ) {
-        self.model.generate(prompt, tx);
+        self.model.generate(prompt, tx).await;
     }
 }
 
