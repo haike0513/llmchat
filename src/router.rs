@@ -5,6 +5,7 @@ use axum::{
     extract::State, response::sse::{Event, Sse}, routing::{get, post}, Router
 };
 use clap::Parser;
+use serde::{Deserialize, Serialize};
 use std::{convert::Infallible, path::PathBuf, time::Duration};
 
 use axum_extra::TypedHeader;
@@ -20,9 +21,16 @@ pub async fn hello_world() -> String {
     g.text
 }
 
+
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct SseParam {
+    pub prompt: String,
+}
+
 pub async fn sse_handler(
     State(s) : State<AppState>,
     TypedHeader(user_agent): TypedHeader<headers::UserAgent>,
+    axum::Json(sse_param): axum::Json<SseParam>,
 ) -> Sse<impl Stream<Item = Result<Event, Infallible>>> {
     println!("`{}` connected", user_agent.as_str());
 
@@ -32,7 +40,7 @@ pub async fn sse_handler(
         let model = models.get("llm");
         let s = if let Some(llm) = model {
             tracing::debug!("llm: {:?}", llm.name());
-            let result = llm.generate();
+            let result = llm.generate(sse_param.prompt.clone());
             let final_r = result.map(|s|  {
                 let ev = Event::default().data(s);
                 Ok(ev)

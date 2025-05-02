@@ -20,8 +20,7 @@ pub struct LlamaModel {}
 
 impl LlamaModel {
     pub async fn generate(&self, prompt: String, tx: mpsc::Sender<String>) {
-        tx.send("value".to_string()).await.unwrap();
-        llama::run(tx, "Hello".to_string()).await;
+        llama::run(tx, prompt).await;
     }
 }
 
@@ -38,13 +37,14 @@ impl LlamaExtension {
             model: Arc::new(model),
         }
     }
-    pub fn generate_llm(&self) -> impl Stream<Item = String> + Send + 'static {
+    pub fn generate_llm(&self, prompt: String) -> impl Stream<Item = String> + Send + 'static {
         let (tx, mut rx) = tokio::sync::mpsc::channel::<String>(100);
 
-        let instance = self.clone();
+        let instance = self.model.clone();
 
         tokio::spawn(async move {
-            instance.generate_with_prompt("hello".to_string(), tx).await;
+            instance.generate(prompt.clone(), tx).await;
+            // instance.generate_with_prompt(prompt, tx).await;
         });
 
         let rs = ReceiverStream::new(rx);
@@ -64,8 +64,8 @@ impl LLMGenerate for LlamaExtension {
         "Llama"
     }
 
-    fn generate(&self) -> futures::stream::BoxStream<'static, String> {
-        self.generate_llm().boxed()
+    fn generate(&self, prompt: String) -> futures::stream::BoxStream<'static, String> {
+        self.generate_llm(prompt).boxed()
         // let (tx, rx) = tokio::sync::mpsc::channel(32);
 
         // let args = chat::Config::parse();
