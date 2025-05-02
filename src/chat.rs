@@ -66,16 +66,16 @@ enum Llama3 {
     V323bInstruct,
 }
 
-pub fn generate<B: Backend, T: Tokenizer>(
+pub async fn generate<B: Backend, T: Tokenizer>(
     llama: &mut Llama<B, T>,
     prompt: &str,
     sample_len: usize,
     temperature: f64,
     sampler: &mut Sampler,
-    sender: mpsc::Sender<Result<Event, Infallible>>
+    sender: mpsc::Sender<String>
 ) -> GenerationOutput {
     let now = Instant::now();
-    let generated = llama.generate(prompt, sample_len, temperature, sampler, sender);
+    let generated = llama.generate(prompt, sample_len, temperature, sampler, sender).await;
     let elapsed = now.elapsed().as_secs();
 
     println!("> {}\n", generated.text);
@@ -93,37 +93,33 @@ pub fn generate<B: Backend, T: Tokenizer>(
     generated
 }
 
-pub fn chat<B: Backend>(args: Config, device: Device<B>,
-    sender: mpsc::Sender<Result<Event, Infallible>>,
+pub async fn chat<B: Backend>(prompt: String, device: Device<B>,
+    sender: mpsc::Sender<String>,
 ) -> GenerationOutput {
-    let mut prompt = args.prompt;
 
     // Sampling strategy
-    let mut sampler = if args.temperature > 0.0 {
-        Sampler::TopP(TopP::new(args.top_p, args.seed))
-    } else {
-        Sampler::Argmax
-    };
+    let mut sampler = Sampler::Argmax;
+
 
     // #[cfg(feature = "tiny")]
     {
         // TinyLlama-1.1B Chat v1.0
-        let mut llama = LlamaConfig::tiny_llama_pretrained::<B>(args.max_seq_len, &device).unwrap();
+        let mut llama = LlamaConfig::tiny_llama_pretrained::<B>(128, &device).unwrap();
         println!("Processing prompt: {}", prompt);
 
         // Prompt formatting for chat model
-        prompt = format!(
+        let mut prompt = format!(
             "<|system|>\nYou are a friendly chatbot who always responds in the style of a pirate</s>\n<|user|>\n{prompt}</s>\n<|assistant|>\n"
         );
 
         generate(
             &mut llama,
             &prompt,
-            args.sample_len,
-            args.temperature,
+            65,
+            0.6,
             &mut sampler,
             sender,
-        )
+        ).await
     }
 
     #[cfg(feature = "llama3")]

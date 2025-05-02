@@ -32,10 +32,10 @@ pub mod tch_cpu {
     use burn::backend::{libtorch::LibTorchDevice, LibTorch};
     use tokio::sync::mpsc;
 
-    pub fn run(args: Config, sender: mpsc::Sender<Result<Event, Infallible>>) -> GenerationOutput {
+    pub async  fn run(args: Config, sender: mpsc::Sender<String>) -> GenerationOutput {
         let device = LibTorchDevice::Cpu;
 
-        chat::chat::<LibTorch>(args, device, sender)
+        chat::chat::<LibTorch>("Hello World".to_string(), device, sender).await
     }
 }
 

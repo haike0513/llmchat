@@ -22,7 +22,7 @@ impl AppState {
 impl Default for  AppState {
     fn default() -> Self {
         let mut models: Arc<Mutex<BTreeMap<String, Box<dyn LLMGenerate>>>> = Arc::new(Mutex::new(BTreeMap::default()));
-        let ex = LlamaExtension;
+        let ex = LlamaExtension::new();
         models.lock().unwrap().insert("llm".to_string(), Box::new(ex));
         Self { model: Default::default(), tokenizer: Default::default(), device: Default::default(), version: Default::default(), models }
     }

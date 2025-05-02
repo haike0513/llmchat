@@ -1,19 +1,42 @@
+use std::sync::Arc;
+
+use crate::extensions::llm::LLMGenerate;
 use crate::tch_cpu;
 use clap::Parser;
-use crate::extensions::llm::LLMGenerate;
+use tokio::sync::mpsc;
 
-use futures::{stream::{BoxStream, Stream}, StreamExt};
+use futures::{
+    StreamExt,
+    stream::{BoxStream, Stream},
+};
 use tokio_stream::wrappers::ReceiverStream;
 
 use crate::chat;
 
-#[derive(Debug, Clone, Default)]
+pub mod llama;
 
-pub struct LlamaExtension;
+#[derive(Clone, Debug)]
+pub struct LlamaModel {}
+
+impl LlamaModel {
+    pub async fn generate(&self, prompt: String, tx: mpsc::Sender<String>) {
+        tx.send("value".to_string()).await.unwrap();
+        llama::run(tx, "Hello".to_string()).await;
+    }
+}
+
+#[derive(Debug, Clone)]
+
+pub struct LlamaExtension {
+    model: Arc<LlamaModel>,
+}
 
 impl LlamaExtension {
     pub fn new() -> Self {
-        Self {}
+        let model = LlamaModel {};
+        Self {
+            model: Arc::new(model),
+        }
     }
     pub fn generate_llm(&self) -> impl Stream<Item = String> + Send + 'static {
         let (tx, mut rx) = tokio::sync::mpsc::channel::<String>(100);
@@ -27,9 +50,12 @@ impl LlamaExtension {
         let rs = ReceiverStream::new(rx);
         rs
     }
-    pub async fn generate_with_prompt(&self, prompt: String, tx: tokio::sync::mpsc::Sender<String>) {
-        tx.send("value".to_string()).await.unwrap();
-
+    pub async fn generate_with_prompt(
+        &self,
+        prompt: String,
+        tx: tokio::sync::mpsc::Sender<String>,
+    ) {
+        self.model.generate(prompt, tx);
     }
 }
 

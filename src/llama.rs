@@ -23,10 +23,10 @@ use crate::{
     pretrained::{self, ModelMeta}, sampling::Sampler, tokenizer::{SentiencePieceTokenizer, Tokenizer}, transformer::{KeyValueCache, Transformer, TransformerConfig}
 };
 
-#[cfg(feature = "pretrained")]
-use crate::pretrained::{self, ModelMeta};
-#[cfg(feature = "tiny")]
-use crate::tokenizer::SentiencePieceTokenizer;
+// #[cfg(feature = "pretrained")]
+// use crate::pretrained::{self, ModelMeta};
+// #[cfg(feature = "tiny")]
+// use crate::tokenizer::SentiencePieceTokenizer;
 #[cfg(feature = "llama3")]
 use crate::tokenizer::Tiktoken;
 
@@ -621,13 +621,13 @@ impl<B: Backend, T: Tokenizer> Llama<B, T> {
     ///
     /// # Returns
     /// The generated text along with some other metadata (see [GenerationOutput]).
-    pub fn generate(
+    pub async fn generate(
         &mut self,
         prompt: &str,
         sample_len: usize,
         temperature: f64,
         sampler: &mut Sampler,
-        sender: mpsc::Sender<Result<Event, Infallible>>,
+        sender: mpsc::Sender<String>,
     ) -> GenerationOutput {
         let input_tokens = self.tokenize(prompt);
         let prompt_len = input_tokens.dims()[0];
@@ -659,12 +659,13 @@ impl<B: Backend, T: Tokenizer> Llama<B, T> {
             .collect::<Vec<_>>();
             let generated_token = self.tokenizer.decode(single_token);
             tracing::debug!("next_token {}", generated_token);
+            sender.send(generated_token.clone()).await.unwrap();
 
-            let tx = sender.clone();
+            // let tx = sender.clone();
 
-            tokio::spawn(async move {
-                tx.send(Ok(Event::default().data(generated_token))).await;
-            });
+            // tokio::spawn(async move {
+            //     tx.send(Ok(Event::default().data(generated_token))).await;
+            // });
             
 
             // Stop when any of the valid stop tokens is encountered

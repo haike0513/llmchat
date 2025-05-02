@@ -16,7 +16,7 @@ use tower_http::{services::ServeDir, trace::TraceLayer};
 pub async fn hello_world() -> String {
     let (tx, rx) = tokio::sync::mpsc::channel(32);
     let args = chat::Config::parse();
-    let g = tch_cpu::run(args, tx);
+    let g = tch_cpu::run(args, tx).await;
     g.text
 }
 

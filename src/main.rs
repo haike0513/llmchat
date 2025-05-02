@@ -49,35 +49,6 @@ fn train_llm_model() {
 }
 // use chat::chat;
 
-pub mod wgpu {
-    use super::*;
-    use burn::backend::wgpu::{Wgpu, WgpuDevice};
-
-    pub fn run(args: chat::Config) {
-        let device = WgpuDevice::default();
-
-        // chat::chat::<Wgpu>(args, device);
-    }
-}
-
-// #[cfg(feature = "tch-cpu")]
-use chat::Config;
-pub mod tch_cpu {
-    use std::convert::Infallible;
-
-    use crate::llama::GenerationOutput;
-
-    use super::*;
-    use axum::response::sse::Event;
-    use burn::backend::{libtorch::LibTorchDevice, LibTorch};
-    use tokio::sync::mpsc;
-
-    pub fn run(args: Config, sender: mpsc::Sender<Result<Event, Infallible>>) -> GenerationOutput {
-        let device = LibTorchDevice::Cpu;
-
-        chat::chat::<LibTorch>(args, device, sender)
-    }
-}
 
 use axum::{
     routing::{get, post},
