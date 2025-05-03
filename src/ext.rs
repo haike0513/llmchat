@@ -38,8 +38,8 @@ impl LlamaModel {
         crate::chat::generate(
             llama,
             prompt.as_str(),
-            65,
-            0.6,
+            120,
+            0.1,
             &mut sampler,
             tx,
         )
@@ -123,6 +123,7 @@ impl LLMGenerate for LlamaExtension {
             //     instance.load_model().await;
             // }
             let prompt = prompt.clone();
+            tracing::debug!("Generating LLM with prompt: {}", prompt);
             instance.generate_token(prompt, tx).await;
             // instance.lock().await.generate(prompt.clone(), tx).await;
         });
