@@ -660,6 +660,7 @@ impl<B: Backend, T: Tokenizer> Llama<B, T> {
             let generated_token = self.tokenizer.decode(single_token);
             tracing::debug!("next_token with generate token {}", generated_token);
             sender.send(generated_token.clone()).await.unwrap();
+            tokio::task::yield_now().await;
 
             // let tx = sender.clone();
 

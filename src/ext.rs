@@ -3,11 +3,10 @@ use std::sync::Arc;
 use crate::extensions::llm::LLMGenerate;
 use crate::tch_cpu;
 use clap::Parser;
-use tokio::sync::mpsc;
+use tokio::{pin, sync::mpsc};
 
 use futures::{
-    StreamExt,
-    stream::{BoxStream, Stream},
+    stream::{unfold, BoxStream, Stream}, StreamExt
 };
 use tokio_stream::wrappers::ReceiverStream;
 
@@ -46,6 +45,17 @@ impl LlamaExtension {
             instance.generate(prompt.clone(), tx).await;
             // instance.generate_with_prompt(prompt, tx).await;
         });
+
+        // use async_stream::stream;
+   
+        // let s = stream! {
+        //     while let Some(value) =  rx.recv().await {
+        //         yield value
+        //     }
+        // };
+
+        // // pin!(s);
+        // s
 
         let rs = ReceiverStream::new(rx);
         rs

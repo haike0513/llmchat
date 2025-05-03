@@ -15,10 +15,7 @@ use tokio_stream::StreamExt as _;
 use tower_http::{services::ServeDir, trace::TraceLayer};
 // use tracing_subscriber::{layer::SubscriberExt, util::SubscriberInitExt};
 pub async fn hello_world() -> String {
-    let (tx, rx) = tokio::sync::mpsc::channel(32);
-    let args = chat::Config::parse();
-    let g = tch_cpu::run(args, tx).await;
-    g.text
+    "Hello World".to_string()
 }
 
 
@@ -27,12 +24,15 @@ pub struct SseParam {
     pub prompt: String,
 }
 
+use axum::debug_handler;
+
+#[debug_handler]
 pub async fn sse_handler(
     State(s) : State<AppState>,
     TypedHeader(user_agent): TypedHeader<headers::UserAgent>,
     axum::Json(sse_param): axum::Json<SseParam>,
 ) -> Sse<impl Stream<Item = Result<Event, Infallible>>> {
-    println!("`{}` connected", user_agent.as_str());
+    tracing::debug!("`{}` connected", user_agent.as_str());
 
     let models = s.models.lock();
     
