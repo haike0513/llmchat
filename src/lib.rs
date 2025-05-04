@@ -22,20 +22,20 @@ pub mod cache;
 
 
 use chat::Config;
-pub mod tch_cpu {
-    use std::convert::Infallible;
+// pub mod tch_cpu {
+//     use std::convert::Infallible;
 
-    use crate::llama::GenerationOutput;
+//     use crate::llama::GenerationOutput;
 
-    use super::*;
-    use axum::response::sse::Event;
-    use burn::backend::{libtorch::LibTorchDevice, LibTorch};
-    use tokio::sync::mpsc;
+//     use super::*;
+//     use axum::response::sse::Event;
+//     use burn::backend::{libtorch::LibTorchDevice, LibTorch};
+//     use tokio::sync::mpsc;
 
-    pub async  fn run(args: Config, sender: mpsc::Sender<String>) -> GenerationOutput {
-        let device = LibTorchDevice::Cpu;
+//     pub async  fn run(args: Config, sender: mpsc::Sender<String>) -> GenerationOutput {
+//         let device = LibTorchDevice::Cpu;
 
-        chat::chat::<LibTorch>("Hello World".to_string(), device, sender).await
-    }
-}
+//         chat::chat::<LibTorch>("Hello World".to_string(), device, sender).await
+//     }
+// }
 

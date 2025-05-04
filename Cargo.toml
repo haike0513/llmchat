@@ -54,6 +54,7 @@ tracing-subscriber = { version = "0.3", features = ["fmt", "env-filter"] }
 async-trait = "0.1.88"
 futures-util = "0.3.31"
 async-stream = "0.3.6"
+uc-core = { path = "./crates/uc-core" }
 
 [workspace]
 members = [ "crates/uc-core","crates/uc-llama"]

@@ -1,6 +1,6 @@
 use std::sync::Arc;
 
-use crate::tch_cpu;
+// use crate::tch_cpu;
 use crate::{extensions::llm::LLMGenerate, tokenizer::SentiencePieceTokenizer};
 use burn::backend::LibTorch;
 use clap::Parser;
